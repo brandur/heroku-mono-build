@@ -100,6 +100,10 @@ make | indent
 echo "Installing" | arrow
 make install | indent
 
+#
+# Package ---
+#
+
 # package filename
 MONO_PACKAGE="$MONO_VERSION.tar.gz"
 
@@ -111,3 +115,5 @@ BASE_DIR="$( cd -P "$( dirname "$0" )" && pwd )"
 echo "Sending to S3" | arrow
 $BASE_DIR/../support/aws/s3 put "$S3_BUCKET" \
   "$MONO_PACKAGE" "$PACKAGE_DIR/$MONO_PACKAGE"
+
+echo "Mono available at https://s3.amazonaws.com/$S3_BUCKET/$MONO_PACKAGE"
