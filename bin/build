@@ -77,6 +77,7 @@ indent() {
 
 echo "Building $MONO_VERSION" | arrow
 
+BASE_DIR="$( cd -P "$( dirname "$0" )" && pwd )/.."
 PACKAGE_DIR="/app/.packages"
 mkdir -p "$PACKAGE_DIR"
 
@@ -89,8 +90,9 @@ curl -O "$MONO_SOURCES_URL/$MONO_TARBALL"
 echo "Unpacking" | arrow
 tar jxf "$MONO_TARBALL"
 
+pushd "$MONO_VERSION"
+
 echo "Configuring" | arrow
-cd "$MONO_VERSION"
 ./configure --prefix="$PACKAGE_DIR/mono" --sysconfdir="$PACKAGE_DIR/mono" \
   --disable-moonlight --disable-nls | indent
 
@@ -99,6 +101,8 @@ make | indent
 
 echo "Installing" | arrow
 make install | indent
+
+popd
 
 #
 # Package ---
@@ -110,10 +114,8 @@ MONO_PACKAGE="$MONO_VERSION.tar.gz"
 echo "Packaging" | arrow
 ( cd "$PACKAGE_DIR" ; tar zcf "$MONO_PACKAGE" mono/ )
 
-BASE_DIR="$( cd -P "$( dirname "$0" )" && pwd )"
-
 echo "Sending to S3" | arrow
-$BASE_DIR/../support/aws/s3 put "$S3_BUCKET" \
+$BASE_DIR/support/aws/s3 put "$S3_BUCKET" \
   "$MONO_PACKAGE" "$PACKAGE_DIR/$MONO_PACKAGE" | indent
 
 echo "Mono available at https://s3.amazonaws.com/$S3_BUCKET/$MONO_PACKAGE" | arrow
