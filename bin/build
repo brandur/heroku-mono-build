@@ -70,25 +70,24 @@ indent() {
 # Build ---
 #
 
-echo "Building Mono ${MONO_VERSION}" | arrow
+echo "Building ${MONO_VERSION}" | arrow
+
+PACKAGE_DIR="/app/.packages"
+mkdir -p "$PACKAGE_DIR"
 
 # tarball filename
 MONO_TARBALL="$MONO_VERSION.tar.bz2"
 
-if [ -f "$CACHE_DIR/$MONO_TARBALL" ]; then
-  echo "Found tarball in cache; copying"
-  cp "$CACHE_DIR/$MONO_TARBALL" .
-else
-  echo "Downloading tarball $MONO_SOURCES_URL/$MONO_TARBALL" | arrow
-  curl -O "$MONO_SOURCES_URL/$MONO_TARBALL"
-fi
+echo "Downloading tarball $MONO_SOURCES_URL/$MONO_TARBALL" | arrow
+curl -O "$MONO_SOURCES_URL/$MONO_TARBALL"
 
 echo "Unpacking" | arrow
 tar jxf "$MONO_TARBALL"
 
 echo "Configuring" | arrow
 cd "$MONO_VERSION"
-./configure --prefix=/app/mono  --sysconfdir=/app/mono --disable-moonlight --disable-nls | indent
+./configure --prefix="$PACKAGE_DIR/mono" --sysconfdir="$PACKAGE_DIR/mono" \
+  --disable-moonlight --disable-nls | indent
 
 echo "Building" | arrow
 make | indent
@@ -100,9 +99,10 @@ make install | indent
 MONO_PACKAGE="$MONO_VERSION.tar.gz"
 
 echo "Packaging" | arrow
-( cd /app ; tar zcf $MONO_PACKAGE mono/ )
+( cd "$PACKAGE_DIR" ; tar zcf "$MONO_PACKAGE" mono/ )
 
 BASE_DIR="$( cd -P "$( dirname "$0" )" && pwd )"
 
 echo "Sending to S3" | arrow
-$BASE_DIR/../support/aws/s3 put $S3_BUCKET $MONO_PACKAGE /app/$MONO_PACKAGE
+$BASE_DIR/../support/aws/s3 put "$S3_BUCKET" \
+  "$MONO_PACKAGE" "$PACKAGE_DIR/$MONO_PACKAGE"
