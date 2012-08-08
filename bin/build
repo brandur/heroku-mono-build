@@ -18,7 +18,7 @@ set -o pipefail
 # AWS_SECRET=""
 
 # how to name package and name of unpacked tarball
-MONO_VERSION="mono-2.11.2"
+MONO_VERSION="mono-2.11.1"
 
 # download site
 MONO_SOURCES_URL="http://download.mono-project.com/sources/mono"
