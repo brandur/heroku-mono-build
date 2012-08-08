@@ -40,6 +40,11 @@ if [ "$AWS_SECRET" == "" ]; then
   exit 1
 fi
 
+if [ "$MONO_VERSION" == "" ]; then
+  echo "need configuration: MONO_VERSION"
+  exit 1
+fi
+
 if [ "$MONO_SOURCES_URL" == "" ]; then
   echo "need configuration: MONO_SOURCES_URL"
   exit 1
@@ -70,7 +75,7 @@ indent() {
 # Build ---
 #
 
-echo "Building ${MONO_VERSION}" | arrow
+echo "Building $MONO_VERSION" | arrow
 
 PACKAGE_DIR="/app/.packages"
 mkdir -p "$PACKAGE_DIR"
