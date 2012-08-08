@@ -1,14 +1,17 @@
 heroku-buildpack-mono-build
 ===========================
 
-Builds the Heroku Mono buildpack via Anvil.
+Clone the build repository:
 
-Store your secrets to the environment of a Heroku app:
+    git clone https://github.com/brandur/heroku-buildpack-mono-build.git
+    cd heroku-buildpack-mono-build.git
+
+Create a Heroku app and store your secrets there:
 
     heroku create heroku-buildpack-mono-build --buildpack https://github.com/kennethreitz/buildpack-null.git
     heroku config:add AWS_ID="..." AWS_SECRET="..." -a heroku-buildpack-mono-build
 
-Now shell in and kick off a build:
+Now shell into your new app and kick off a build:
 
     heroku run -a heroku-buildpack-mono-build bash
     bin/build
