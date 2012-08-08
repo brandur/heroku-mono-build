@@ -4,7 +4,7 @@ heroku-buildpack-mono-build
 Clone the build repository:
 
     git clone https://github.com/brandur/heroku-buildpack-mono-build.git
-    cd heroku-buildpack-mono-build.git
+    cd heroku-buildpack-mono-build
 
 Create a Heroku app and store your secrets there:
 
