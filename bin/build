@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# bin/build
+
+# fail fast
+set -e
+
+# if any command in a pipe fails, kill the script (useful for indent)
+set -o pipefail
+
+#
+# Configuration ---
+#
+
+# Amazon ID
+# AWS_ID=""
+
+# Amazon secret
+# AWS_SECRET=""
+
+# how to name package and name of unpacked tarball
+MONO_VERSION="mono-2.11.2"
+
+# download site
+MONO_SOURCES_URL="http://download.mono-project.com/sources/mono"
+
+# where to place the packaged binaries
+S3_BUCKET="heroku-buildpack-mono"
+
+#
+# Checks ---
+#
+
+if [ "$AWS_ID" == "" ]; then
+  echo "need configuration: AWS_ID"
+  exit 1
+fi
+
+if [ "$AWS_SECRET" == "" ]; then
+  echo "need configuration: AWS_SECRET"
+  exit 1
+fi
+
+if [ "$MONO_SOURCES_URL" == "" ]; then
+  echo "need configuration: MONO_SOURCES_URL"
+  exit 1
+fi
+
+if [ "$S3_BUCKET" == "" ]; then
+  echo "need configuration: S3_BUCKET"
+  exit 1
+fi
+
+#
+# Utilities ---
+#
+
+arrow() {
+  while read line; do
+    echo "-----> ${line}"
+  done
+}
+
+indent() {
+  while read line; do
+    echo "       ${line}"
+  done
+}
+
+#
+# Build ---
+#
+
+echo "Building Mono ${MONO_VERSION}" | arrow
+
+# tarball filename
+MONO_TARBALL="$MONO_VERSION.tar.bz2"
+
+if [ -f "$CACHE_DIR/$MONO_TARBALL" ]; then
+  echo "Found tarball in cache; copying"
+  cp "$CACHE_DIR/$MONO_TARBALL" .
+else
+  echo "Downloading tarball $MONO_SOURCES_URL/$MONO_TARBALL" | arrow
+  curl -O "$MONO_SOURCES_URL/$MONO_TARBALL"
+fi
+
+echo "Unpacking" | arrow
+tar jxf "$MONO_TARBALL"
+
+echo "Configuring" | arrow
+cd "$MONO_VERSION"
+./configure --prefix=/app/mono  --sysconfdir=/app/mono --disable-moonlight --disable-nls | indent
+
+echo "Building" | arrow
+make | indent
+
+echo "Installing" | arrow
+make install | indent
+
+# package filename
+MONO_PACKAGE="$MONO_VERSION.tar.gz"
+
+echo "Packaging" | arrow
+( cd /app ; tar zcf $MONO_PACKAGE mono/ )
+
+BASE_DIR="$( cd -P "$( dirname "$0" )" && pwd )"
+
+echo "Sending to S3" | arrow
+$BASE_DIR/../support/aws/s3 put $S3_BUCKET $MONO_PACKAGE /app/$MONO_PACKAGE
