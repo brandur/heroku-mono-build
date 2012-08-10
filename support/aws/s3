@@ -127,19 +127,18 @@ s3_curl() {
   [[ $CURL_S3_DEBUG == true ]] && stdopts="${stdopts} --show-error --fail"
   case "${1}" in
    GET) arg="-o" inout="${4:--}" # stdout if no $4
-	  headers[${#headers[@]}]="x-amz-acl: public-read"
+      headers=("${headers[@]}" "x-amz-acl: public-read")
 	;;
    PUT) [[ ${2} ]] || die "PUT can has bucket?"
         if [[ ! ${3} ]]; then
 	  arg="-X PUT"
-	  headers[${#headers[@]}]="Content-Length: 0"
+      headers=("${headers[@]}" "Content-Length: 0")
 	elif [[ -f ${4} ]]; then
           md5="$(openssl dgst -md5 -binary "${4}"|openssl base64 -e -a)"
 	  arg="-T" inout="${4}"
-	  headers[${#headers[@]}]="x-amz-acl: public-read"
-	  headers[${#headers[@]}]="Expect: 100-continue"
+      headers=("${headers[@]}" "x-amz-acl: public-read" "Expect: 100-continue")
 		if [ "$mime" != "" ]; then
-		  headers[${#headers[@]}]="Content-Type: $mime"
+          headers=("${headers[@]}" "Content-Type: $mime")
 		fi
 	else
 	  die "Cannot write non-existing file ${4}"
@@ -154,10 +153,9 @@ s3_curl() {
   echo ${1} "${date}" "${bucket}" "${remote}" "${md5}" "${mime}" "x-amz-acl:public-read"
   sig=$(s3_signature_string ${1} "${date}" "${bucket}" "${remote}" "${md5}" "${mime}" "x-amz-acl:public-read")
 
-  headers[${#headers[@]}]="Authorization: AWS ${AWS_ID}:${sig}"
-  headers[${#headers[@]}]="Date: ${date}"
+  headers=("${headers[@]}" "Authorization: AWS ${AWS_ID}:${sig}" "Date: ${date}")
   [[ ${md5} ]]
-    headers[${#headers[@]}]="Content-MD5: ${md5}"
+    headers=("${headers[@]}" "Content-MD5: ${md5}")
     echo ${headers[@]}
     echo curl ${arg} "${inout}" ${stdopts} -i -o - -K $(curl_headers "${headers[@]}") \
        "http://s3.amazonaws.com${bucket}${remote}"
