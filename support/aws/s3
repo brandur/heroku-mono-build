@@ -156,6 +156,8 @@ s3_curl() {
   headers[${#headers[@]}]="Authorization: AWS ${AWS_ID}:${sig}"
   headers[${#headers[@]}]="Date: ${date}"
   [[ ${md5} ]] && headers[${#headers[@]}]="Content-MD5: ${md5}"
+    echo curl ${arg} "${inout}" ${stdopts} -i -o - -K <(curl_headers "${headers[@]}") \
+       "http://s3.amazonaws.com${bucket}${remote}"
     curl ${arg} "${inout}" ${stdopts} -o - -K <(curl_headers "${headers[@]}") \
        "http://s3.amazonaws.com${bucket}${remote}"
   return $?
