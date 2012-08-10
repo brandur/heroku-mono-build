@@ -123,40 +123,41 @@ s3_curl() {
   bucket="${2:+/${2}}/" # slashify the bucket
   remote="$(urlenc "${3}")" # if you don't, strange things may happen.
   stdopts="--connect-timeout 10 --fail --silent"
-	mime="${5}"
+  mime="${5}"
   [[ $CURL_S3_DEBUG == true ]] && stdopts="${stdopts} --show-error --fail"
   case "${1}" in
-   GET) arg="-o" inout="${4:--}" # stdout if no $4
+    GET) arg="-o" inout="${4:--}" # stdout if no $4
       headers=("${headers[@]}" "x-amz-acl: public-read")
-	;;
-   PUT) [[ ${2} ]] || die "PUT can has bucket?"
-        if [[ ! ${3} ]]; then
-	  arg="-X PUT"
-      headers=("${headers[@]}" "Content-Length: 0")
-	elif [[ -f ${4} ]]; then
-          md5="$(openssl dgst -md5 -binary "${4}"|openssl base64 -e -a)"
-	  arg="-T" inout="${4}"
-      headers=("${headers[@]}" "x-amz-acl: public-read" "Expect: 100-continue")
-		if [ "$mime" != "" ]; then
+      ;;
+    PUT) [[ ${2} ]] || die "PUT can has bucket?"
+      if [[ ! ${3} ]]; then
+        arg="-X PUT"
+        headers=("${headers[@]}" "Content-Length: 0")
+      elif [[ -f ${4} ]]; then
+        md5="$(openssl dgst -md5 -binary "${4}"|openssl base64 -e -a)"
+        arg="-T" inout="${4}"
+        headers=("${headers[@]}" "x-amz-acl: public-read" "Expect: 100-continue")
+        if [ "$mime" != "" ]; then
           headers=("${headers[@]}" "Content-Type: $mime")
-		fi
-	else
-	  die "Cannot write non-existing file ${4}"
         fi
-	;;
-   DELETE) arg="-X DELETE"
-           ;;
-   HEAD) arg="-I" ;;
-   *) die "Unknown verb ${1}.  It probably would not have worked anyways." ;;
+      else
+        die "Cannot write non-existing file ${4}"
+      fi
+      ;;
+    DELETE) arg="-X DELETE"
+      ;;
+    HEAD) arg="-I" ;;
+    *) die "Unknown verb ${1}.  It probably would not have worked anyways." ;;
   esac
   date="$(TZ=UTC date '+%a, %e %b %Y %H:%M:%S %z')"
   sig=$(s3_signature_string ${1} "${date}" "${bucket}" "${remote}" "${md5}" "${mime}" "x-amz-acl:public-read")
 
   headers=("${headers[@]}" "Authorization: AWS ${AWS_ID}:${sig}" "Date: ${date}")
-  [[ ${md5} ]]
+  if [[ ${md5} ]]; then
     headers=("${headers[@]}" "Content-MD5: ${md5}")
-    curl ${arg} "${inout}" ${stdopts} -o - -K <(curl_headers "${headers[@]}") \
-       "http://s3.amazonaws.com${bucket}${remote}"
+  fi
+  curl ${arg} "${inout}" ${stdopts} -o - -K <(curl_headers "${headers[@]}") \
+    "http://s3.amazonaws.com${bucket}${remote}"
   return $?
 }
 
