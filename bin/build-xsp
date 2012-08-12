@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# bin/build
+
+# fail fast
+set -e
+
+# if any command in a pipe fails, kill the script (useful for indent)
+set -o pipefail
+
+#
+# Configuration ---
+#
+
+# Amazon ID
+# AWS_ID=""
+
+# Amazon secret
+# AWS_SECRET=""
+
+# version of the mono dependency
+MONO_VERSION="mono-2.11.2"
+
+# where to place the packaged binaries and fetch Mono
+S3_BUCKET="heroku-buildpack-mono"
+
+#
+# Checks ---
+#
+
+if [ "$AWS_ID" == "" ]; then
+  echo "need configuration: AWS_ID"
+  exit 1
+fi
+
+if [ "$AWS_SECRET" == "" ]; then
+  echo "need configuration: AWS_SECRET"
+  exit 1
+fi
+
+if [ "$S3_BUCKET" == "" ]; then
+  echo "need configuration: S3_BUCKET"
+  exit 1
+fi
+
+#
+# Utilities ---
+#
+
+arrow() {
+  while read line; do
+    echo "-----> ${line}"
+  done
+}
+
+indent() {
+  while read line; do
+    echo "       ${line}"
+  done
+}
+
+#
+# Dependencies ---
+#
+
+echo "Building $XSP_VERSION" | arrow
+
+BASE_DIR="$( cd -P "$( dirname "$0" )" && pwd )"
+PACKAGE_DIR="/app/.packages"
+mkdir -p "$PACKAGE_DIR"
+
+if [ ! -f "$MONO_VERSION.tar.gz" ]; then
+  echo "Downloading Mono source https://s3.amazonaws.com/$S3_BUCKET/$MONO_VERSION.tar.gz" | arrow
+  curl -O "https://s3.amazonaws.com/$S3_BUCKET/$MONO_VERSION.tar.gz"
+fi
+
+if [ ! -f $PACKAGE_DIR ]; then
+  echo "Unpacking Mono" | arrow
+  tar zxf "$MONO_VERSION.tar.gz" -C "$PACKAGE_DIR"
+fi
+
+#
+# Build ---
+#
+
+echo "Downloading tarball https://github.com/mono/xsp/tarball/master" | arrow
+curl -L https://github.com/mono/xsp/tarball/master -o xsp.tar.gz
+tar zxf xsp.tar.gz
+
+export PATH="$PACKAGE_DIR/mono/bin:$PATH"
+export PKG_CONFIG_PATH="$PACKAGE_DIR/mono/lib/pkgconfig/:$PKG_CONFIG_PATH"
+
+pushd xsp-*
+
+echo "Configuring" | arrow
+./configure --prefix=$PACKAGE_DIR/xsp --sysconfdir=$PACKAGE_DIR/xsp | indent
+
+echo "Building" | arrow
+make | indent
+
+echo "Installing" | arrow
+make install | indent
+
+#
+# Package ---
+#
+
+# package filename
+XSP_PACKAGE="xsp.tar.gz"
+
+echo "Packaging" | arrow
+( cd "$PACKAGE_DIR" ; tar zcf "$XSP_PACKAGE" xsp/ )
+
+echo "Sending to S3" | arrow
+$BASE_DIR/../support/aws/s3 put "$S3_BUCKET" \
+  "$XSP_PACKAGE" "$PACKAGE_DIR/$XSP_PACKAGE"
