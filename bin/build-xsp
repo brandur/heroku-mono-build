@@ -89,7 +89,7 @@ tar zxf xsp.tar.gz
 export PATH="$PACKAGE_DIR/mono/bin:$PATH"
 export PKG_CONFIG_PATH="$PACKAGE_DIR/mono/lib/pkgconfig/:$PKG_CONFIG_PATH"
 
-pushd xsp-*
+pushd mono-xsp-*
 
 echo "Configuring" | arrow
 ./configure --prefix=$PACKAGE_DIR/xsp --sysconfdir=$PACKAGE_DIR/xsp | indent
