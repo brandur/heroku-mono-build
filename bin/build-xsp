@@ -105,7 +105,7 @@ make install | indent
 #
 
 # package filename
-XSP_PACKAGE="xsp.tar.gz"
+XSP_PACKAGE="xsp-master.tar.gz"
 
 echo "Packaging" | arrow
 ( cd "$PACKAGE_DIR" ; tar zcf "$XSP_PACKAGE" xsp/ )
@@ -113,3 +113,5 @@ echo "Packaging" | arrow
 echo "Sending to S3" | arrow
 $BASE_DIR/../support/aws/s3 put "$S3_BUCKET" \
   "$XSP_PACKAGE" "$PACKAGE_DIR/$XSP_PACKAGE"
+
+echo "Mono available at https://s3.amazonaws.com/$S3_BUCKET/$XSP_PACKAGE" | arrow
