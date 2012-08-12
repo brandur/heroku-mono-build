@@ -1,6 +1,8 @@
 heroku-mono-build
 =================
 
+Builds Mono and related packages, assembles them for deployment, and uploads them to S3 for use by [heroku-buildpack-mono](https://github.com/brandur/heroku-buildpack-mono).
+
 Clone the build repository:
 
     git clone https://github.com/brandur/heroku-mono-build.git
