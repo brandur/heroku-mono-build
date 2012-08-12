@@ -114,4 +114,4 @@ echo "Sending to S3" | arrow
 $BASE_DIR/../support/aws/s3 put "$S3_BUCKET" \
   "$XSP_PACKAGE" "$PACKAGE_DIR/$XSP_PACKAGE"
 
-echo "Mono available at https://s3.amazonaws.com/$S3_BUCKET/$XSP_PACKAGE" | arrow
+echo "XSP available at https://s3.amazonaws.com/$S3_BUCKET/$XSP_PACKAGE" | arrow
