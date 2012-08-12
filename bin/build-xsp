@@ -18,10 +18,10 @@ set -o pipefail
 # AWS_SECRET=""
 
 # version of the mono dependency
-MONO_VERSION="mono-2.11.2"
+# MONO_VERSION="mono-2.11.1"
 
 # where to place the packaged binaries and fetch Mono
-S3_BUCKET="heroku-buildpack-mono"
+# S3_BUCKET="heroku-buildpack-mono"
 
 #
 # Checks ---

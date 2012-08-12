@@ -9,7 +9,8 @@ Clone the build repository:
 Create a Heroku app and store your secrets there:
 
     heroku create heroku-mono-build --buildpack https://github.com/kennethreitz/buildpack-null.git
-    heroku config:add AWS_ID="..." AWS_SECRET="..."
+    heroku config:add AWS_ID="..." AWS_SECRET="..." S3_BUCKET="heroku-buildpack-mono"
+    heroku config:add MONO_VERSION="2.11.1"
 
 Now shell into your new app and kick off a build:
 

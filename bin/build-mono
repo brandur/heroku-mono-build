@@ -18,13 +18,10 @@ set -o pipefail
 # AWS_SECRET=""
 
 # how to name package and name of unpacked tarball
-MONO_VERSION="mono-2.11.1"
-
-# download site
-MONO_SOURCES_URL="http://download.mono-project.com/sources/mono"
+# MONO_VERSION="mono-2.11.1"
 
 # where to place the packaged binaries
-S3_BUCKET="heroku-buildpack-mono"
+# S3_BUCKET="heroku-buildpack-mono"
 
 #
 # Checks ---
@@ -42,11 +39,6 @@ fi
 
 if [ "$MONO_VERSION" == "" ]; then
   echo "need configuration: MONO_VERSION"
-  exit 1
-fi
-
-if [ "$MONO_SOURCES_URL" == "" ]; then
-  echo "need configuration: MONO_SOURCES_URL"
   exit 1
 fi
 
@@ -84,6 +76,7 @@ mkdir -p "$PACKAGE_DIR"
 # tarball filename
 MONO_TARBALL="$MONO_VERSION.tar.bz2"
 
+MONO_SOURCES_URL="http://download.mono-project.com/sources/mono"
 echo "Downloading tarball $MONO_SOURCES_URL/$MONO_TARBALL" | arrow
 curl -O "$MONO_SOURCES_URL/$MONO_TARBALL"
 
