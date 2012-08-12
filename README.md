@@ -14,4 +14,4 @@ Create a Heroku app and store your secrets there:
 Now shell into your new app and kick off a build:
 
     heroku run bash
-    bin/build
+    bin/build-mono
